@@ -1,0 +1,6 @@
+name = "detodounpoquito17"
+compatibility_date = "2025-01-01"
+pages_build_output_dir = "./"
+
+# Este es un sitio estático HTML puro
+# No requiere build process ni funciones serverless

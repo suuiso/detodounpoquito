@@ -1,0 +1,19 @@
+{
+  "name": "detodounpoquito17",
+  "version": "1.0.0",
+  "description": "Prototipo web inspirado en la cuenta de Instagram @detodo_unpoquito17",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "deploy": "wrangler pages deploy ."
+  },
+  "keywords": [
+    "fashion",
+    "ecommerce",
+    "cloudflare-pages",
+    "tailwindcss"
+  ],
+  "author": "Nicolás Caballero / OIP 2025",
+  "license": "MIT",
+  "dependencies": {}
+}

@@ -1,0 +1,20 @@
+# Headers de seguridad y optimización para Cloudflare Pages
+
+/*
+  # Seguridad
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  
+  # Caché y optimización
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# Caché largo para assets estáticos
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Sin caché para HTML principal
+/index.html
+  Cache-Control: no-cache, must-revalidate
