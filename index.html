@@ -2,7 +2,12 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#ec4899">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="description" content="Colección Primavera/Verano 2025 - Moda urbana femenina en Santiago">
     <title>De Todo Un Poquito 17 - Colección Primavera/Verano</title>
     
     <!-- Tailwind CSS -->
@@ -87,6 +92,7 @@
         }
         .mobile-nav-link {
              @apply block text-lg text-gray-800 font-semibold py-3 px-6 hover:bg-pink-100 rounded-md transition-colors duration-200;
+             -webkit-tap-highlight-color: rgba(236, 72, 153, 0.2);
         }
         header.scrolled {
             padding-top: 0.75rem; /* 12px */
@@ -156,6 +162,48 @@
             .animate-bounce-in {
                 animation-duration: 0.3s !important;
             }
+            /* Prevenir zoom en inputs en iOS */
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+        }
+        
+        /* --- MEJORAS TÁCTILES --- */
+        button, a, .wishlist-btn, .add-to-cart-btn {
+            -webkit-tap-highlight-color: rgba(236, 72, 153, 0.2);
+            touch-action: manipulation;
+        }
+        
+        /* --- MENÚ MÓVIL MEJORADO --- */
+        #mobile-menu {
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        #mobile-menu.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Prevenir scroll cuando el menú está abierto */
+        body.menu-open {
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+        }
+        
+        /* --- MODAL MEJORADO PARA MÓVIL --- */
+        #quick-view-modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        @media (max-width: 768px) {
+            #quick-view-content {
+                max-height: 90vh;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
         }
 
     </style>
@@ -191,7 +239,7 @@
     </header>
 
      <!-- Menú Móvil -->
-    <div id="mobile-menu" class="hidden md:hidden bg-white/95 backdrop-blur-lg fixed top-0 left-0 w-full h-full z-40 pt-24">
+    <div id="mobile-menu" class="md:hidden bg-white/95 backdrop-blur-lg fixed top-0 left-0 w-full h-full pt-24" style="z-index: 9999;">
         <nav class="flex flex-col items-center space-y-6">
               <a href="#inicio" class="mobile-nav-link">⭐ INICIO</a>
               <a href="#conjuntos" class="mobile-nav-link">👚 CONJUNTOS Y SETS</a>
@@ -308,15 +356,46 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // --- Lógica Menú Móvil (sin cambios) ---
+            // --- Lógica Menú Móvil MEJORADA ---
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
             const openIcon = document.getElementById('menu-open-icon');
             const closeIcon = document.getElementById('menu-close-icon');
-            mobileMenuButton.addEventListener('click', () => {
-                mobileMenu.classList.toggle('hidden');
-                openIcon.classList.toggle('hidden');
-                closeIcon.classList.toggle('hidden');
+            const body = document.body;
+            
+            function toggleMenu() {
+                const isOpen = mobileMenu.classList.contains('active');
+                
+                if (isOpen) {
+                    // Cerrar menú
+                    mobileMenu.classList.remove('active');
+                    body.classList.remove('menu-open');
+                    openIcon.classList.remove('hidden');
+                    closeIcon.classList.add('hidden');
+                } else {
+                    // Abrir menú
+                    mobileMenu.classList.add('active');
+                    body.classList.add('menu-open');
+                    openIcon.classList.add('hidden');
+                    closeIcon.classList.remove('hidden');
+                }
+            }
+            
+            mobileMenuButton.addEventListener('click', toggleMenu);
+            
+            // Cerrar menú al hacer click en un enlace
+            const mobileLinks = mobileMenu.querySelectorAll('a');
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    toggleMenu();
+                });
+            });
+            
+            // Cerrar menú con ESC
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && mobileMenu.classList.contains('active')) {
+                    toggleMenu();
+                }
             });
 
             // --- Lógica Header Sticky (sin cambios) ---
@@ -484,7 +563,8 @@
             loadProducts('vestidos', 'product-grid-vestidos');
 
             function handleWishlistClick(e) {
-                e.stopPropagation(); 
+                e.stopPropagation();
+                e.preventDefault();
                 const button = e.currentTarget;
                 const isFavorite = button.classList.toggle('is-favorite');
 
@@ -499,12 +579,17 @@
                 }
             }
 
-            // --- Lógica Quick View Modal ---
+            // --- Lógica Quick View Modal MEJORADA ---
             const quickViewModal = document.getElementById('quick-view-modal');
             const closeModalBtn = document.getElementById('close-modal-btn');
             const modalImg = document.getElementById('modal-img'), modalTitle = document.getElementById('modal-title'), modalPrice = document.getElementById('modal-price'), modalSizes = document.getElementById('modal-sizes');
 
             function openQuickViewModal(event) {
+                // Evitar abrir modal si se clickeó el botón de wishlist o carrito
+                if (event.target.closest('.wishlist-btn') || event.target.closest('.add-to-cart-btn')) {
+                    return;
+                }
+                
                 const card = event.currentTarget;
                 modalImg.src = card.querySelector('img').src.replace('400x533', '600x800');
                 modalTitle.textContent = card.querySelector('h3').textContent;
@@ -513,14 +598,28 @@
                 
                 quickViewModal.classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
+                document.body.style.position = 'fixed';
+                document.body.style.width = '100%';
             }
+            
             function closeModal() {
                 quickViewModal.classList.add('hidden');
-                document.body.style.overflow = 'auto';
+                document.body.style.overflow = '';
+                document.body.style.position = '';
+                document.body.style.width = '';
             }
+            
             closeModalBtn.addEventListener('click', closeModal);
+            
             quickViewModal.addEventListener('click', (e) => {
                 if (e.target === quickViewModal) closeModal();
+            });
+            
+            // Cerrar modal con ESC
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !quickViewModal.classList.contains('hidden')) {
+                    closeModal();
+                }
             });
 
             // --- TAREA 5: LÓGICA PARA EL FORMULARIO DE NEWSLETTER ---
