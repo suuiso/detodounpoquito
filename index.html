@@ -174,23 +174,66 @@
             touch-action: manipulation;
         }
         
-        /* --- MENÚ MÓVIL MEJORADO --- */
+        /* --- MENÚ MÓVIL COMPLETAMENTE REDISEÑADO --- */
         #mobile-menu {
-            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-            opacity: 0;
-            visibility: hidden;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
         }
         
-        #mobile-menu.active {
-            opacity: 1;
-            visibility: visible;
+        #mobile-menu.show {
+            transform: translateX(0);
+        }
+        
+        #mobile-menu-overlay {
+            will-change: opacity;
         }
         
         /* Prevenir scroll cuando el menú está abierto */
-        body.menu-open {
-            overflow: hidden;
-            position: fixed;
-            width: 100%;
+        body.no-scroll {
+            overflow: hidden !important;
+            position: fixed !important;
+            width: 100% !important;
+            height: 100% !important;
+            top: 0;
+            left: 0;
+        }
+        
+        /* Mejorar área táctil de botones móviles */
+        @media (max-width: 768px) {
+            button, .mobile-nav-link {
+                min-height: 48px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            /* Hacer botones más grandes y fáciles de tocar */
+            .wishlist-btn {
+                padding: 12px !important;
+                min-width: 48px;
+                min-height: 48px;
+            }
+            
+            .add-to-cart-btn {
+                min-height: 48px;
+                font-size: 16px;
+            }
+            
+            /* Mejorar enlaces del menú */
+            .mobile-nav-link {
+                font-size: 18px;
+                padding: 16px 24px;
+                width: 100%;
+                text-align: left;
+            }
+        }
+        
+        /* Prevenir selección de texto en botones */
+        button, .wishlist-btn, .add-to-cart-btn {
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
         }
         
         /* --- MODAL MEJORADO PARA MÓVIL --- */
@@ -238,15 +281,20 @@
         </div>
     </header>
 
+     <!-- Overlay del Menú Móvil -->
+    <div id="mobile-menu-overlay" class="md:hidden fixed inset-0 bg-black/50 opacity-0 pointer-events-none transition-opacity duration-300" style="z-index: 9999;"></div>
+    
      <!-- Menú Móvil -->
-    <div id="mobile-menu" class="md:hidden bg-white/95 backdrop-blur-lg fixed top-0 left-0 w-full h-full pt-24" style="z-index: 9999;">
-        <nav class="flex flex-col items-center space-y-6">
-              <a href="#inicio" class="mobile-nav-link">⭐ INICIO</a>
-              <a href="#conjuntos" class="mobile-nav-link">👚 CONJUNTOS Y SETS</a>
-              <a href="#tops" class="mobile-nav-link">👕 TOPS Y POLERAS</a>
-              <a href="#shorts" class="mobile-nav-link">🩳 SHORTS Y BIKER</a>
-              <a href="#vestidos" class="mobile-nav-link">👗 VESTIDOS Y ENTERITOS</a>
-        </nav>
+    <div id="mobile-menu" class="md:hidden bg-white fixed top-0 right-0 w-4/5 max-w-sm h-full shadow-2xl overflow-y-auto" style="z-index: 10000;">
+        <div class="pt-20 pb-8">
+            <nav class="flex flex-col space-y-2 px-4">
+                  <a href="#inicio" class="mobile-nav-link">⭐ INICIO</a>
+                  <a href="#conjuntos" class="mobile-nav-link">👚 CONJUNTOS Y SETS</a>
+                  <a href="#tops" class="mobile-nav-link">👕 TOPS Y POLERAS</a>
+                  <a href="#shorts" class="mobile-nav-link">🩳 SHORTS Y BIKER</a>
+                  <a href="#vestidos" class="mobile-nav-link">👗 VESTIDOS Y ENTERITOS</a>
+            </nav>
+        </div>
     </div>
 
 
@@ -356,45 +404,89 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // --- Lógica Menú Móvil MEJORADA ---
+            // --- Lógica Menú Móvil COMPLETAMENTE REDISEÑADA ---
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
+            const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
             const openIcon = document.getElementById('menu-open-icon');
             const closeIcon = document.getElementById('menu-close-icon');
             const body = document.body;
+            let menuOpen = false;
             
-            function toggleMenu() {
-                const isOpen = mobileMenu.classList.contains('active');
+            function openMenu() {
+                console.log('Opening menu');
+                menuOpen = true;
+                mobileMenu.classList.add('show');
+                mobileMenuOverlay.classList.remove('pointer-events-none');
+                mobileMenuOverlay.classList.remove('opacity-0');
+                mobileMenuOverlay.classList.add('opacity-100');
+                body.classList.add('no-scroll');
+                openIcon.classList.add('hidden');
+                closeIcon.classList.remove('hidden');
+            }
+            
+            function closeMenu() {
+                console.log('Closing menu');
+                menuOpen = false;
+                mobileMenu.classList.remove('show');
+                mobileMenuOverlay.classList.add('pointer-events-none');
+                mobileMenuOverlay.classList.remove('opacity-100');
+                mobileMenuOverlay.classList.add('opacity-0');
+                body.classList.remove('no-scroll');
+                openIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+            }
+            
+            function toggleMenu(e) {
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                console.log('Toggle menu clicked, current state:', menuOpen);
                 
-                if (isOpen) {
-                    // Cerrar menú
-                    mobileMenu.classList.remove('active');
-                    body.classList.remove('menu-open');
-                    openIcon.classList.remove('hidden');
-                    closeIcon.classList.add('hidden');
+                if (menuOpen) {
+                    closeMenu();
                 } else {
-                    // Abrir menú
-                    mobileMenu.classList.add('active');
-                    body.classList.add('menu-open');
-                    openIcon.classList.add('hidden');
-                    closeIcon.classList.remove('hidden');
+                    openMenu();
                 }
             }
             
-            mobileMenuButton.addEventListener('click', toggleMenu);
+            // Evento click en el botón
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', toggleMenu);
+                
+                // También manejar touch para móviles
+                mobileMenuButton.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, { passive: false });
+            }
             
-            // Cerrar menú al hacer click en un enlace
+            // Cerrar al hacer click en el overlay
+            if (mobileMenuOverlay) {
+                mobileMenuOverlay.addEventListener('click', closeMenu);
+            }
+            
+            // Cerrar menú al hacer click en enlaces
             const mobileLinks = mobileMenu.querySelectorAll('a');
             mobileLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    toggleMenu();
+                link.addEventListener('click', (e) => {
+                    console.log('Link clicked');
+                    // No prevenir default para que la navegación funcione
+                    setTimeout(closeMenu, 200);
                 });
+                
+                // También manejar touch
+                link.addEventListener('touchend', (e) => {
+                    console.log('Link touched');
+                    setTimeout(closeMenu, 200);
+                }, { passive: true });
             });
             
-            // Cerrar menú con ESC
+            // Cerrar con ESC
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && mobileMenu.classList.contains('active')) {
-                    toggleMenu();
+                if (e.key === 'Escape' && menuOpen) {
+                    closeMenu();
                 }
             });
 
@@ -543,16 +635,46 @@
                     grid.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
                     
                     grid.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+                        // Click para desktop
                         btn.addEventListener('click', (e) => {
                             e.stopPropagation();
+                            e.preventDefault();
+                            console.log('Cart button clicked');
                             addToCart();
                         });
+                        
+                        // Touch para móvil
+                        btn.addEventListener('touchend', (e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            console.log('Cart button touched');
+                            addToCart();
+                        }, { passive: false });
                     });
                     grid.querySelectorAll('.card-shadow').forEach(card => {
+                        // Click para desktop
                         card.addEventListener('click', openQuickViewModal);
+                        
+                        // Touch para móvil
+                        card.addEventListener('touchend', (e) => {
+                            // Solo abrir modal si no se tocó un botón
+                            if (!e.target.closest('.wishlist-btn') && !e.target.closest('.add-to-cart-btn')) {
+                                console.log('Card touched, opening modal');
+                                openQuickViewModal(e);
+                            }
+                        }, { passive: true });
                     });
                     grid.querySelectorAll('.wishlist-btn').forEach(btn => {
+                        // Click para desktop
                         btn.addEventListener('click', handleWishlistClick);
+                        
+                        // Touch para móvil
+                        btn.addEventListener('touchend', (e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            console.log('Wishlist button touched');
+                            handleWishlistClick(e);
+                        }, { passive: false });
                     });
                 }, 1500);
             }
@@ -563,9 +685,16 @@
             loadProducts('vestidos', 'product-grid-vestidos');
 
             function handleWishlistClick(e) {
-                e.stopPropagation();
-                e.preventDefault();
-                const button = e.currentTarget;
+                if (e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                }
+                
+                const button = e.currentTarget || e.target.closest('.wishlist-btn');
+                if (!button) return;
+                
+                console.log('Wishlist clicked/touched, button:', button);
+                
                 const isFavorite = button.classList.toggle('is-favorite');
 
                 if (isFavorite) {
@@ -573,9 +702,11 @@
                     button.addEventListener('animationend', () => button.classList.remove('animate-heart-beat'), { once: true });
                     // Tarea 5: Mostrar toast
                     showToast('❤️ Añadido a favoritos');
+                    console.log('Added to favorites');
                 } else {
                     // Tarea 5: Mostrar toast (opcional, pero buena UX)
                     showToast('💔 Eliminado de favoritos');
+                    console.log('Removed from favorites');
                 }
             }
 
@@ -610,10 +741,21 @@
             }
             
             closeModalBtn.addEventListener('click', closeModal);
+            closeModalBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                closeModal();
+            }, { passive: false });
             
             quickViewModal.addEventListener('click', (e) => {
                 if (e.target === quickViewModal) closeModal();
             });
+            
+            quickViewModal.addEventListener('touchend', (e) => {
+                if (e.target === quickViewModal) {
+                    e.preventDefault();
+                    closeModal();
+                }
+            }, { passive: false });
             
             // Cerrar modal con ESC
             document.addEventListener('keydown', (e) => {
